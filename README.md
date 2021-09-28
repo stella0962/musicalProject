@@ -629,15 +629,16 @@ mysql> select * from delivery_table
 
 ## 동기식 호출 과 Fallback 처리
 
-분석단계에서의 조건 중 하나로 강의신청(class)->결제(payment) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다. 
+분석단계에서의 조건 중 하나로 티켓예약(booking)->결제(payment) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 
+호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다. 
 
 - 결제서비스를 호출하기 위하여 Stub과 (FeignClient) 를 이용하여 Service 대행 인터페이스 (Proxy) 를 구현 
 
 
 ```
-# (class) PaymentService.java
+# (booking) PaymentService.java
 
-package classnew.external;
+package booking.external;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -656,17 +657,19 @@ import feign.Feign;
 import feign.hystrix.HystrixFeign;
 import feign.hystrix.SetterFactory;
 
-@FeignClient(name="payment", url="http://localhost:8083", configuration=PaymentService.PaymentServiceConfiguration.class, fallback=PaymentServiceFallback.class)
+import java.util.Date;
+
+@FeignClient(name="approvePay", url="http://localhost:8082", configuration=PaymentService.PaymentServiceConfiguration.class, fallback=PaymentServiceFallback.class)
 public interface PaymentService {
-    @RequestMapping(method= RequestMethod.POST, path="/payments", consumes = "application/json") //payments로 해야 데이터insert
-    public boolean payApprove(@RequestBody Payment payment);
+    @RequestMapping(method= RequestMethod.POST, path="/payments")
+    public boolean approvePay(@RequestBody Payment payment);
+
 ```
 
-- class와 payment서비스가 올라가있는 상황에서 POST 정상
+- booking과 payment서비스가 올라가있는 상황에서 POST 정상
 
-![class_post](https://user-images.githubusercontent.com/88864740/133542301-fc65b0f6-9328-4541-a506-828dd2514dca.png)
-
-![payment_post](https://user-images.githubusercontent.com/88864740/133542402-9c2d2e28-65fb-47dc-8679-fe643c2219f2.png)
+![booking_post](https://user-images.githubusercontent.com/20183369/135124731-0485b8c5-26b7-4500-af99-d939d191dc38.png)
+![payment_get](https://user-images.githubusercontent.com/20183369/135125122-ea888f26-a27e-44dc-ae64-b9c589b1a9a9.png)
 
 
 - 동기식 호출에서는 호출 시간에 따른 타임 커플링이 발생하며, Payment가 장애가 나면 Class도 동작하지 못함을 확인
@@ -687,25 +690,25 @@ public interface PaymentService {
 [class > src > main > resources > application.yml]에 hystrix
 
 ```
-# (class) PaymentServiceFallback.java
+# (booking) PaymentServiceFallback.java
 
-package classnew.external;
+package booking.external;
 
 import org.springframework.stereotype.Component;
 
 @Component
 public class PaymentServiceFallback implements PaymentService {
     @Override
-    public boolean payApprove(Payment payment) {
+    public boolean approvePay(Payment payment) {
 
-        System.out.println("\\n=========FALLBACK STARTING=========\\n"); //fallback 메소드 작동 테스트
-	
+        System.out.println("\\n=========FALL BACK STARTING=========\\n"); //fallback 메소드 작동 테스트
+
         return false;
     }
 }
 ```
 
--FallBack처리를하면, Payment장애라도 Class기동 중이면 정상처리됨 
+-FallBack처리를하면, Payment장애라도 booking 기동 중이면 정상처리됨 
 
 ![image](https://user-images.githubusercontent.com/88864740/133537916-3b485d5d-10c5-4792-ad99-8e4e2bb7a4e7.png)
 
