@@ -528,8 +528,8 @@ mysql> select * from delivery_table
 
 ## CQRS
 
- - 강의 신청정보, 결제상태, 배송상태 등을 조회할 수 있도록 CQRS로 구현함
- - Class, Payment의 Status를 통합해서 조회하기 때문에 다른 핵심 서비스들의 성능저하 이슈를 해결할 수 있다.
+ - 티켓 예약정보, 결제상태, 배송상태 등을 조회할 수 있도록 CQRS로 구현함
+ - Booking, Payment의 Status를 통합해서 조회하기 때문에 다른 핵심 서비스들의 성능저하 이슈를 해결할 수 있다.
  - 비동기식으로 Kafka를 통해 이벤트를 수신하게 되면 별도로 관리한다
 
 [mypage > src > main > java > team > MyPageViewHandler.java]
@@ -537,26 +537,24 @@ mysql> select * from delivery_table
 
 ```
   @StreamListener(KafkaProcessor.INPUT)
-    public void whenClassRegisted_then_CREATE_1 (@Payload ClassRegisted classRegisted) {
+    public void whenBookingStarted_then_CREATE_1 (@Payload BookingStarted bookingStarted) {
         try {
 
-            System.out.println("\n\n##### listener classRegisted : " + classRegisted.toJson() + "\n\n");
-
-            if (!classRegisted.validate()) return;
+            if (!bookingStarted.validate()) return;
 
             // view 객체 생성
             Mypage mypage = new Mypage();
             // view 객체에 이벤트의 Value 를 set 함
-            mypage.setApplyId(String.valueOf(classRegisted.getId()));
-            mypage.setCourseId(String.valueOf(classRegisted.getCourseId()));
-            mypage.setApplyStaus("ApplyFinish");
-            mypage.setPayMethod(classRegisted.getPayMethod());
-            mypage.setPayAccount(classRegisted.getPayAccount());
-            mypage.setStudentName(classRegisted.getStudentName());
-            mypage.setAddr(classRegisted.getAddr());
-            mypage.setTelephoneInfo(classRegisted.getTelephoneInfo());
-            mypage.setPayStatus("PayFinish");
-            //mypage.setDeliveryStatus("D");
+            mypage.setBookingId(bookingStarted.getId());
+            mypage.setMusicalName(bookingStarted.getBookingStatus());
+            mypage.setCustomerName(bookingStarted.getCustomerName());
+            mypage.setTelephoneInfo(bookingStarted.getTelephone());
+            mypage.setAddr(bookingStarted.getAddr());
+            mypage.setBookingStatus(bookingStarted.getBookingStatus());
+            mypage.setPaymentStatus("");
+            mypage.setDeliveryDate("");
+            mypage.setShipperName("");
+            mypage.setDeliveryStatus("");
             // view 레파지 토리에 save
             mypageRepository.save(mypage);
 
@@ -567,19 +565,17 @@ mysql> select * from delivery_table
 
 
     @StreamListener(KafkaProcessor.INPUT)
-    public void whenPaymentAppoved_then_UPDATE_1(@Payload PaymentAppoved paymentAppoved) {
+    public void whenBookingCanceled_then_UPDATE_1(@Payload BookingCanceled bookingCanceled) {
         try {
-            if (!paymentAppoved.validate()) return;
+            if (!bookingCanceled.validate()) return;
                 // view 객체 조회
-                System.out.println("\n\n##### listener paymentAppoved : " + paymentAppoved.toJson() + "\n\n");
 
-                List<Mypage> mypageList = mypageRepository.findByApplyId(paymentAppoved.getApplyId());
-                for(Mypage mypage : mypageList){
-                // view 객체에 이벤트의 eventDirectValue 를 set 함
-                    mypage.setPayStatus("PayFinish");
-                    mypage.setApplyStaus("ApplyFinish");
-                    // view 레파지 토리에 save
-                    mypageRepository.save(mypage);
+                    List<Mypage> mypageList = mypageRepository.findByBookingId(bookingCanceled.getId());
+                    for(Mypage mypage : mypageList){
+                    // view 객체에 이벤트의 eventDirectValue 를 set 함
+                    mypage.setBookingStatus("CANCEL_BOOKING'");
+                // view 레파지 토리에 save
+                mypageRepository.save(mypage);
                 }
 
         }catch (Exception e){
@@ -587,19 +583,55 @@ mysql> select * from delivery_table
         }
     }
     @StreamListener(KafkaProcessor.INPUT)
-    public void whenDeliveryStarted_then_UPDATE_2(@Payload DeliveryStarted deliveryStarted) {
+    public void whenPaymentApproved_then_UPDATE_2(@Payload PaymentApproved paymentApproved) {
+        try {
+            if (!paymentApproved.validate()) return;
+                // view 객체 조회
+
+                    List<Mypage> mypageList = mypageRepository.findByBookingId(paymentApproved.getBookingId());
+                    for(Mypage mypage : mypageList){
+                    // view 객체에 이벤트의 eventDirectValue 를 set 함
+                    mypage.setPaymentStatus("COMPLETE_PAYMENT");
+                // view 레파지 토리에 save
+                mypageRepository.save(mypage);
+                }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+    @StreamListener(KafkaProcessor.INPUT)
+    public void whenPayCanceled_then_UPDATE_3(@Payload PayCanceled payCanceled) {
+        try {
+            if (!payCanceled.validate()) return;
+                // view 객체 조회
+
+                    List<Mypage> mypageList = mypageRepository.findByBookingId(payCanceled.getBookingId());
+                    for(Mypage mypage : mypageList){
+                    // view 객체에 이벤트의 eventDirectValue 를 set 함
+                    mypage.setPaymentStatus("CANCEL_PAYMENT");
+                // view 레파지 토리에 save
+                mypageRepository.save(mypage);
+                }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+    @StreamListener(KafkaProcessor.INPUT)
+    public void whenDeliveryStarted_then_UPDATE_4(@Payload DeliveryStarted deliveryStarted) {
         try {
             if (!deliveryStarted.validate()) return;
                 // view 객체 조회
-                System.out.println("\n\n##### listener deliveryStarted : " + deliveryStarted.toJson() + "\n\n");
 
-                List<Mypage> mypageList = mypageRepository.findByApplyId(deliveryStarted.getApplyId());
-                for(Mypage mypage : mypageList){
-                // view 객체에 이벤트의 eventDirectValue 를 set 함
-
-                    mypage.setDeliveryStatus("DeliveryFinish");
+                    List<Mypage> mypageList = mypageRepository.findByBookingId(deliveryStarted.getBookingId());
+                    for(Mypage mypage : mypageList){
+                    // view 객체에 이벤트의 eventDirectValue 를 set 함
+                    mypage.setDeliveryDate(deliveryStarted.getDeliveryDate());
+                    mypage.setShipperName(deliveryStarted.getShipperName());
+                    mypage.setDeliveryStatus("COMPLETE_DELIVERY");
                 // view 레파지 토리에 save
-                    mypageRepository.save(mypage);
+                mypageRepository.save(mypage);
                 }
 
         }catch (Exception e){
@@ -607,18 +639,17 @@ mysql> select * from delivery_table
         }
     }
     @StreamListener(KafkaProcessor.INPUT)
-    public void whenClassCanceled_then_UPDATE_3(@Payload ClassCanceled classCanceled) {
+    public void whenDeliveryCanceled_then_UPDATE_5(@Payload DeliveryCanceled deliveryCanceled) {
         try {
-            if (!classCanceled.validate()) return;
+            if (!deliveryCanceled.validate()) return;
                 // view 객체 조회
-            System.out.println("\n\n##### listener classCanceled : " + classCanceled.toJson() + "\n\n");
 
-                List<Mypage> mypageList = mypageRepository.findByApplyId(String.valueOf(classCanceled.getId()));
-                for(Mypage mypage : mypageList){
+                    List<Mypage> mypageList = mypageRepository.findByBookingId(deliveryCanceled.getBookingId());
+                    for(Mypage mypage : mypageList){
                     // view 객체에 이벤트의 eventDirectValue 를 set 함
-                    mypage.setApplyStaus("CancelRequest");
+                    mypage.setDeliveryStatus("CANCEL_DELIVERY");
                 // view 레파지 토리에 save
-                    mypageRepository.save(mypage);
+                mypageRepository.save(mypage);
                 }
 
         }catch (Exception e){
