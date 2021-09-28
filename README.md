@@ -890,7 +890,7 @@ public class Class {
 [gateway > src > main > resource > application.yml]
 
 Gateway 서비스 기동 후 각 서비스로 접근이 가능한지 확인
-http GET localhost:8083/payment와 동일하게 http GET localhost:8088/payment 포트번호 바꿔서 호출 시 정상처리되면 Gatway 정상!
+http GET localhost:8082/payment와 동일하게 http GET localhost:8088/payment 포트번호 바꿔서 호출 시 정상처리되면 Gatway 정상!
 
 ```
 server:
@@ -903,24 +903,20 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: class
+        - id: booking
           uri: http://localhost:8081
           predicates:
-            - Path=/classes/** 
-        - id: course
-          uri: http://localhost:8082
-          predicates:
-            - Path=/courses/** 
+            - Path=/bookings/** 
         - id: payment
-          uri: http://localhost:8083
+          uri: http://localhost:8082
           predicates:
             - Path=/payments/** 
         - id: delivery
-          uri: http://localhost:8084
+          uri: http://localhost:8083
           predicates:
             - Path=/deliveries/** 
         - id: mypage
-          uri: http://localhost:8085
+          uri: http://localhost:8084
           predicates:
             - Path= /mypages/**
       globalcors:
@@ -934,8 +930,10 @@ spring:
               - "*"
             allowCredentials: true
 
+
 ```
 ![image](https://user-images.githubusercontent.com/88864740/133534482-9520bba1-c659-409a-88b1-a7e6dc132b57.png)
+![image](https://user-images.githubusercontent.com/20183369/135131039-fbacc06f-afd9-454f-b8b2-a278e51d238b.png)
 
 
 # 운영
