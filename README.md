@@ -1,6 +1,7 @@
 # 
 # Musical Concert Booking
-![image](https://user-images.githubusercontent.com/20183369/135119104-e58931a1-87e6-4b71-b3e1-5d4bbc38c996.png)
+![image](https://user-images.githubusercontent.com/20183369/135119104-e58931a1-87e6-4b71-b3e1-5d4bbc38c996.png) ![image](https://user-images.githubusercontent.com/20183369/135119302-bc0ced91-77af-4334-89bc-242a1f9756be.png)
+
 # 뮤지컬 콘서트티켓 예약시스템
 
 본 예제는 MSA/DDD/Event Storming/EDA 를 포괄하는 분석/설계/구현/운영 전체 구현과제를 구성한 예제입니다.
