@@ -674,20 +674,19 @@ public interface PaymentService {
 
 - 동기식 호출에서는 호출 시간에 따른 타임 커플링이 발생하며, Payment가 장애가 나면 Class도 동작하지 못함을 확인
 
-![class-payment동기1](https://user-images.githubusercontent.com/88864740/133542529-88985589-6adc-4b49-8ba4-94bc9d3c0372.png)
-
-![class-payment동기2](https://user-images.githubusercontent.com/88864740/133542565-354638d1-e33d-4e1f-bf38-d5c474e64579.png)
+![payment서비스 장애](https://user-images.githubusercontent.com/20183369/135127745-ea97cff3-bc0e-4463-8e12-ad94fb28aa4f.png)
+![classt서비스도 동작불가](https://user-images.githubusercontent.com/20183369/135127831-3f1b1bfc-cbca-4d51-887d-653a97c6163c.png)
 
 
 - FallBack 처리
 
--1.Class-Payment의 Request/Response 구조에 Spring Hystrix를 사용하여 FallBack 기능 구현
+-1.Booking-Payment의 Request/Response 구조에 Spring Hystrix를 사용하여 FallBack 기능 구현
 
--2.[order > src > main > java > Class > external > PaymentService.java]에 configuration, fallback 옵션 추가
+-2.[booking > src > main > java > Booking > external > PaymentService.java]에 configuration, fallback 옵션 추가
 
 -3.configuration 클래스 및 fallback 클래스 추가
 
-[class > src > main > resources > application.yml]에 hystrix
+[booking > src > main > resources > application.yml]에 hystrix
 
 ```
 # (booking) PaymentServiceFallback.java
@@ -708,9 +707,9 @@ public class PaymentServiceFallback implements PaymentService {
 }
 ```
 
--FallBack처리를하면, Payment장애라도 booking 기동 중이면 정상처리됨 
+-FallBack처리를하면, Payment장애라도 Booking 기동 중이면 정상처리됨 
 
-![image](https://user-images.githubusercontent.com/88864740/133537916-3b485d5d-10c5-4792-ad99-8e4e2bb7a4e7.png)
+![Fallback-Booking정상작동](https://user-images.githubusercontent.com/20183369/135128287-1e2f15fd-43e8-47b7-8a9c-9d745dceaef0.png)
 
 
 
