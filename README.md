@@ -454,7 +454,7 @@ mysql> select * from delivery_table
 
 
 ```
-@StreamListener(KafkaProcessor.INPUT)
+    @StreamListener(KafkaProcessor.INPUT)
     public void whenBookingStarted_then_CREATE_1 (@Payload BookingStarted bookingStarted) {
         try {
 
@@ -469,10 +469,6 @@ mysql> select * from delivery_table
             mypage.setTelephoneInfo(Long.valueOf(bookingStarted.getTelephone()));
             mypage.setAddr(bookingStarted.getAddr());
             mypage.setBookingStatus(bookingStarted.getBookingStatus());
-            mypage.setPaymentStatus("");
-           // mypage.setDeliveryDate('');
-            mypage.setShipperName("");
-            mypage.setDeliveryStatus("");
             // view 레파지 토리에 save
             mypageRepository.save(mypage);
 
