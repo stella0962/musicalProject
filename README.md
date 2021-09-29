@@ -223,39 +223,42 @@ mvn spring-boot:run
  (예시는 payment 마이크로 서비스). 
 
 ```
-package team;
+package booking;
 
 import javax.persistence.*;
 import org.springframework.beans.BeanUtils;
+import java.util.List;
+import java.util.Date;
 
 @Entity
-@Table(name = "Payment_table")
+@Table(name="Payment_table")
 public class Payment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.AUTO)
     private Long id;
-    private String applyId;
-    private String payMethod;
-    private String payAccount;
-    private String payStaus;
+    private Long bookingId;
     private String addr;
-    private String telephoneInfo;
-    private String studentName;
+    private String paymentStatus;
 
     @PostPersist
-    public void onPostPersist() {
-        PaymentAppoved paymentAppoved = new PaymentAppoved();
-        BeanUtils.copyProperties(this, paymentAppoved);
-        paymentAppoved.setPayStaus("PaymentAprroved");
-        paymentAppoved.publishAfterCommit();
+    public void onPostPersist(){
+        PaymentApproved paymentApproved = new PaymentApproved();
+        BeanUtils.copyProperties(this, paymentApproved);
+        paymentApproved.publishAfterCommit();
+
     }
 
     @PostUpdate
-    public void onPostUpdate() {
-        PaymentCanceled paymentCanceled = new PaymentCanceled();
-        BeanUtils.copyProperties(this, paymentCanceled);
-        paymentCanceled.publishAfterCommit();
+    public void onPostUpdate(){
+        PayCanceled payCanceled = new PayCanceled();
+        BeanUtils.copyProperties(this, payCanceled);
+        payCanceled.publishAfterCommit();
+
+    }
+
+    @PrePersist
+    public void onPrePersist(){
     }
 
     public Long getId() {
@@ -265,39 +268,13 @@ public class Payment {
     public void setId(Long id) {
         this.id = id;
     }
-
-    public String getApplyId() {
-        return applyId;
+    public Long getBookingId() {
+        return bookingId;
     }
 
-    public void setApplyId(String applyId) {
-        this.applyId = applyId;
+    public void setBookingId(Long bookingId) {
+        this.bookingId = bookingId;
     }
-
-    public String getPayMethod() {
-        return payMethod;
-    }
-
-    public void setPayMethod(String payMethod) {
-        this.payMethod = payMethod;
-    }
-
-    public String getPayAccount() {
-        return payAccount;
-    }
-
-    public void setPayAccount(String payAccount) {
-        this.payAccount = payAccount;
-    }
-
-    public String getPayStaus() {
-        return payStaus;
-    }
-
-    public void setPayStaus(String payStaus) {
-        this.payStaus = payStaus;
-    }
-
     public String getAddr() {
         return addr;
     }
@@ -305,40 +282,32 @@ public class Payment {
     public void setAddr(String addr) {
         this.addr = addr;
     }
-
-    public String getTelephoneInfo() {
-        return telephoneInfo;
+    public String getPaymentStatus() {
+        return paymentStatus;
     }
 
-    public void setTelephoneInfo(String telephoneInfo) {
-        this.telephoneInfo = telephoneInfo;
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
     }
-
-    public String getStudentName() {
-        return studentName;
-    }
-
-    public void setStudentName(String studentName) {
-        this.studentName = studentName;
-    }
-
 }
 
 ```
 - Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다
 
 ```
-package team;
+package booking;
 
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 import java.util.List;
 
-public interface PaymentRepository extends PagingAndSortingRepository<Payment, Long> {
+@RepositoryRestResource(collectionResourceRel="payments", path="payments")
+public interface PaymentRepository extends PagingAndSortingRepository<Payment, Long>{
 
-    List<Payment> findByApplyId(String applyId);
+    List<Payment> findByApplyId(String bookingId);
 }
+
 ```
 
 - 적용 후 REST API 의 테스트
@@ -697,86 +666,83 @@ public class PaymentServiceFallback implements PaymentService {
 
 ## 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트
 
-booking(예약소) 후 payment(결제취소) 서비스로 알려주는 행위는 동기식이 아니라 비 동기식으로 처리하여 payment(결제) 서비스 시스템 문제로 인해 예약취소 관리가 블로킹 되지 않도록 처리한다.
+booking(예약취소) 후 payment(결제취소) 서비스로 알려주는 행위는 동기식이 아니라 비 동기식으로 처리하여 payment(결제) 서비스 시스템 문제로 인해 예약취소 관리가 블로킹 되지 않도록 처리한다.
 
 - 이를 위하여 예약 신청/취소 시 자체 DB에 직접 기록을 남긴 후에 곧바로 예약 신청/취소 내용을 도메인 이벤트를 카프카로 송출한다(Publish)
 
 ```
-package classnew;
+package booking;
 
 import javax.persistence.*;
 import org.springframework.beans.BeanUtils;
 import java.util.List;
 import java.util.Date;
 
-import classnew.external.Payment;
-import classnew.external.PaymentService;
+import booking.external.Payment;
+import booking.external.PaymentService;
 
 @Entity
-@Table(name="Class_table")
-public class Class {
+@Table(name="Booking_table")
+public class Booking {
 
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
     private Long id;
-    private String studentName;
+    private String musicalName;
+    private String customerName;
+    private Long telephoneInfo;
     private String addr;
-    private String telephoneInfo;
-    private String payMethod;
-    private String payAccount;
-    private String applyStatus;
-    private Long courseId;
+    private String bookingStatus;
 
- @PostUpdate
+    
+    @PostUpdate
     public void onPostUpdate(){
-        //this.setPaymentId(this.getOrderId());
-        this.setApplyStatus("CLASS_CANCELED"); // path=classes의 applyStatus상태 업데이트
-
-        ClassCanceled classCanceled = new ClassCanceled();
-
-        classCanceled.setClassId(this.getId());
-        classCanceled.setApplyStatus(this.getApplyStatus());
-
-        BeanUtils.copyProperties(this, classCanceled);
-        classCanceled.publishAfterCommit();
-
-
+    
+        System.out.println(" >> 티켓 예약취소 <<");
+	
+        BookingCanceled bookingCanceled = new BookingCanceled();
+        BeanUtils.copyProperties(this, bookingCanceled);
+        bookingCanceled.publishAfterCommit();
     }
+
     
 ```
 
-- 강의 등록/수정 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다:
+- 예약 취소 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다:
 
 ```
-  
-    @StreamListener(KafkaProcessor.INPUT)
-    public void wheneverClassCanceled_PayCancel(@Payload ClassCanceled classCanceled) {
+package booking;
 
-        if (classCanceled.isMe()) {
-            System.out.println("##### listener PaymentCancellation : " + classCanceled.toJson() + "\n\n");
+import booking.config.kafka.KafkaProcessor;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.stream.annotation.StreamListener;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.stereotype.Service;
 
-            List<Payment> paymentList = paymentRepository.findByApplyId(String.valueOf(classCanceled.getId()));
-
-            for (Payment payment : paymentList) {
-                payment.setPayStaus("PaymentCancelled");
-                paymentRepository.save(payment);
-            }
-        }
-        return;
-    }
-
-    // Sample Logic //
-    // Payment payment = new Payment();
-    // paymentRepository.save(payment);
+@Service
+public class PolicyHandler{
+    @Autowired PaymentRepository paymentRepository;
 
     @StreamListener(KafkaProcessor.INPUT)
-    public void whatever(@Payload String eventString) {
-    }
+    public void wheneverBookingCanceled_CancelPay(@Payload BookingCanceled bookingCanceled){
 
-}
+        if(!bookingCanceled.validate()) return;
+
+        java.util.Optional<Payment> paymentOptional = paymentRepository.findById(bookingCanceled.getId());
+
+        Payment payment = paymentOptional.get();
+        payment.setPaymentStatus("CANCEL_PAYMENT");
+        paymentRepository.save(payment);
+
+
+        System.out.println("\n\n##### listener CancelPay : " + bookingCanceled.toJson() + "\n\n");
+
+    }
 
 ```
-- 실제 구현을 하자면, 수강생은 수강 신청/신청취소를 한 경우, 수강신청상태,결제상태, 배송상태 정보를 Mypage Aggregate 내에서 조회 가능
+- 실제 구현을 하자면, 고객은 티켓 예약/예약취소를 한 경우, 예약상태,결제상태, 배송상태 정보를 Mypage Aggregate 내에서 조회 가능
   
 ```
      @StreamListener(KafkaProcessor.INPUT)
@@ -823,9 +789,11 @@ public class Class {
 
 
 - 티켓 예약 취소 (성공) 
+
 ![비동기_예약취소](https://user-images.githubusercontent.com/20183369/135273656-e2eb72ff-ba95-417f-9128-32be2d30ba23.png)
 
 - 결제 취소(성공)
+
 ![비동기_결제취소](https://user-images.githubusercontent.com/20183369/135273699-56b69922-4abc-40dd-9bb6-fa7398bd048e.png)
 
 - PAYMENT(결제) 서비스가 내려가있어도 비동기식으로 BOOKING(예약 취소) 성공 되는 부분 확인
