@@ -124,7 +124,7 @@
 
 ### Bounded Context로 묶기
 
-![Bounded Context](https://user-images.githubusercontent.com/49930207/131061428-9b1f1367-97bf-448c-b3e7-70cdcdc442af.png)
+![bounded_image](https://user-images.githubusercontent.com/20183369/135278745-9b8a5f78-a508-43e5-a082-81fb706a3914.png)
 
     - 도메인 서열 분리 
         - Core Domain:  class, course : 없어서는 안될 핵심 서비스이며, 연견 Up-time SLA 수준을 99.999% 목표, 배포주기는 class 의 경우 1주일 1회 미만, course 의 경우 1개월 1회 미만
@@ -132,12 +132,11 @@
 
 ### 폴리시의 이동과 컨텍스트 매핑 (점선은 Pub/Sub, 실선은 Req/Resp)
 
-![Policy & Req/Resp & Pub/Sub](https://user-images.githubusercontent.com/49930207/131070356-6fbd5fbc-5b17-41a8-bcde-ca3388166f75.png)
-        - 서비스 간의 관계 확인
+![image](https://user-images.githubusercontent.com/20183369/135278498-6f6be2cd-ffef-4833-8dbc-b4a1843e5d91.png)
+    - 서비스 간의 관계 확인
       
 ### 완성된 1차 모형
-
-![완성된 1차 모형](https://user-images.githubusercontent.com/49930207/131074402-af4a05e9-c044-4159-8b9b-26631735f05d.png)
+![image](https://user-images.githubusercontent.com/20183369/135278458-e0b995e4-0eb5-43be-b4bf-10ea4acd0d79.png)
 
     - 서비스 간의 관계 추가
 
@@ -158,7 +157,7 @@
 
 
 ### 모델 완료
-![image](https://user-images.githubusercontent.com/20183369/135277770-e71853a2-c39e-4b9f-8ba0-daa8cce1d084.png)
+![image](https://user-images.githubusercontent.com/20183369/135278221-bc042c91-93f1-4534-87e1-1da258cc0e9c.png)
 
     - 마이크로서비스별 Aggregate , Evnecnt, Policy, Command Attribute 정의
     - Naming변경
