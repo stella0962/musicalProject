@@ -200,67 +200,27 @@
 분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 Sping-Boot로 구현하였다. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 808n 이다)
 
 ```
-cd course
+cd booking
 mvn spring-boot:run
-
-cd class
-mvn spring-boot:run 
 
 cd payment
 mvn spring-boot:run  
-
-cd gateway
-mvn spring-boot:run
 
 cd delivery
 mvn spring-boot:run
 
 cd mypage
 mvn spring-boot:run
+
+cd gateway
+mvn spring-boot:run
+
 ```
-
-- 아래 부터는 AWS 클라우드의 EKS 서비스 내에 서비스를 모두 배포 후 설명을 진행한다.
-```
-root@labs-2125792906:/home/project/team/delivery# kubectl get all -n team05
-NAME                           READY   STATUS    RESTARTS   AGE
-pod/class-d88578c44-jszd8      1/1     Running   0          68m
-pod/course-7489886cf7-jpxcr    1/1     Running   0          68m
-pod/delivery-c7b7d6d7d-svj7t   1/1     Running   0          5s
-pod/gateway-5c8c77f4f7-wfjbh   1/1     Running   0          68m
-pod/mypage-59bd496598-lzpxc    1/1     Running   0          54m
-pod/payment-6f797bc88f-2dxl7   1/1     Running   0          68m
-pod/siege                      1/1     Running   0          33m
-
-NAME               TYPE           CLUSTER-IP       EXTERNAL-IP                                                                  PORT(S)          AGE
-service/class      ClusterIP      10.100.161.69    <none>                                                                       8080/TCP         67m
-service/course     ClusterIP      10.100.157.122   <none>                                                                       8080/TCP         68m
-service/delivery   ClusterIP      10.100.57.150    <none>                                                                       8080/TCP         66m
-service/gateway    LoadBalancer   10.100.87.132    ab6c51987a9bf4492826b76503de84b2-1875639511.ca-central-1.elb.amazonaws.com   8080:32645/TCP   57m
-service/mypage     ClusterIP      10.100.101.186   <none>                                                                       8080/TCP         57m
-service/payment    ClusterIP      10.100.39.160    <none>                                                                       8080/TCP         68m
-
-NAME                       READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/class      1/1     1            1           68m
-deployment.apps/course     1/1     1            1           68m
-deployment.apps/delivery   1/1     1            1           6s
-deployment.apps/gateway    1/1     1            1           68m
-deployment.apps/mypage     1/1     1            1           54m
-deployment.apps/payment    1/1     1            1           68m
-
-NAME                                 DESIRED   CURRENT   READY   AGE
-replicaset.apps/class-d88578c44      1         1         1       68m
-replicaset.apps/course-7489886cf7    1         1         1       68m
-replicaset.apps/delivery-c7b7d6d7d   1         1         1       6s
-replicaset.apps/gateway-5c8c77f4f7   1         1         1       68m
-replicaset.apps/mypage-59bd496598    1         1         1       54m
-replicaset.apps/payment-6f797bc88f   1         1         1       68m
-```
-![클라우드EKS](https://user-images.githubusercontent.com/88864740/133535542-40d69962-f66a-4650-837e-91720ea45075.png)
 
 ## DDD 의 적용
 
 - 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: 
- (예시는 payment 마이크로 서비스). 이때 가능한 중학교 수준의 영어를 사용하려고 노력했다. 
+ (예시는 payment 마이크로 서비스). 
 
 ```
 package team;
@@ -384,19 +344,11 @@ public interface PaymentRepository extends PagingAndSortingRepository<Payment, L
 - 적용 후 REST API 의 테스트
 
 ```
-//강의 등록
-http POST localhost:8082/courses id=1 className=English classInfo=Language teacherName=Tom teacherInfo=Male startDate=20210101 endDate=20211231
 
-//강의 등록 확인
-http GET localhost:8082/courses
-
-//강의 삭제
-http DELETE localhost:8082/courses/1
-
-//수강 신청
+//티켓 예약
 http POST http://localhost:8081/classes studentName="학생2" classId="2" addr="SEOUL NAMGU" telephoneInfo="010-1234-2345" payMethod="BANK" payAccount="1234-2334-4556-7890" applyStatus="ApplyRequest"
 
-//수강 등록 확인
+//티켓 예약확인
 http GET http://localhost:8081/classes
 
 //결제 확인
@@ -408,10 +360,10 @@ http GET http://localhost:8084/deliveries
 //My page 확인
 http GET http://localhost:8084/deliveries/mypages
 
-//수강 취소
+//티켓 예약취소
 http PATCH http://localhost:8081/classes/1 applyStatus=“CLASS_CANCELED”
 
-//수강 취소 확인
+//티켓 예약취소 확인
 http GET http://localhost:8081/classes/1
 
 //결제 취소 확인 (상태값 "CANCEL" 확인)
