@@ -112,15 +112,15 @@
 
 
 ### 이벤트 도출
-![이벤트 도출](https://user-images.githubusercontent.com/49930207/131055626-88773fdf-77a1-4ac7-a25e-9b200fa565b1.png)
+![image](https://user-images.githubusercontent.com/20183369/135280767-12b936bc-29d4-4402-9e30-6416f1b6a7db.png)
 
 ### Actor, Command 추가
-![Actor, Command](https://user-images.githubusercontent.com/49930207/131058387-035d27bd-c2ff-4c08-a04a-60d361920ef6.png)
+![image](https://user-images.githubusercontent.com/20183369/135279990-613edc27-0408-43cf-87b9-a7f6827eaded.png)
 
 ### Aggregate으로 묶기
-![Aggregate](https://user-images.githubusercontent.com/49930207/131058844-53e7785f-1dd2-49e0-9bd4-1ad30af43527.png)
+![Aggregate](https://user-images.githubusercontent.com/20183369/135279509-f68b0413-9717-4e89-8b19-ec0764b84255.png)
 
-    - 수강신청, 강의등록, 결제내역, 배송내역 업무영역 단위로 묶음
+    - 예약신청, 결제내역, 배송내역 업무영역 단위로 묶음
 
 ### Bounded Context로 묶기
 
