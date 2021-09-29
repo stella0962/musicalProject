@@ -158,7 +158,7 @@
 
 
 ### 모델 완료
-![image](https://user-images.githubusercontent.com/49930207/131438677-e65d348a-775e-4121-9982-f723e1cbb1c7.png)
+![image](https://user-images.githubusercontent.com/20183369/135277770-e71853a2-c39e-4b9f-8ba0-daa8cce1d084.png)
 
     - 마이크로서비스별 Aggregate , Evnecnt, Policy, Command Attribute 정의
     - Naming변경
