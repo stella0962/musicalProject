@@ -346,34 +346,34 @@ public interface PaymentRepository extends PagingAndSortingRepository<Payment, L
 ```
 
 //티켓 예약
-http POST http://localhost:8081/classes studentName="학생2" classId="2" addr="SEOUL NAMGU" telephoneInfo="010-1234-2345" payMethod="BANK" payAccount="1234-2334-4556-7890" applyStatus="ApplyRequest"
+http POST http://localhost:8081/bookings musicalName="Elizabeth" customerName="홍길동" telephoneInfo=11112222 addr="서울시 종로구"
 
 //티켓 예약확인
-http GET http://localhost:8081/classes
+http GET http://localhost:8081/bookings
 
 //결제 확인
-http GET http://localhost:8083/payments
+http GET http://localhost:8082/payments
 
 //배송 시작 확인
-http GET http://localhost:8084/deliveries
+http GET http://localhost:8083/deliveries
 
 //My page 확인
-http GET http://localhost:8084/deliveries/mypages
+http GET http://localhost:8084/mypages
 
 //티켓 예약취소
-http PATCH http://localhost:8081/classes/1 applyStatus=“CLASS_CANCELED”
+http PATCH http://localhost:8081/bookings/1 bookingStatus=“CANCEL_BOOKING”
 
 //티켓 예약취소 확인
-http GET http://localhost:8081/classes/1
+http GET http://localhost:8081/bookings/1
 
 //결제 취소 확인 (상태값 "CANCEL" 확인)
-http GET http://localhost:8083/payments
+http GET http://localhost:8082/payments
 
 //배송 취소 확인 (상태값 "DELIVERY_CANCEL" 확인)
-http GET http://localhost:8084/deliveries
+http GET http://localhost:8083/deliveries
 
 //My page 확인
-http GET http://localhost:8085/mypages
+http GET http://localhost:8084/mypages
 
 ```
 
@@ -697,9 +697,9 @@ public class PaymentServiceFallback implements PaymentService {
 
 ## 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트
 
-class(수강취소) 후 payment(결제취소) 서비스로 알려주는 행위는 동기식이 아니라 비 동기식으로 처리하여 payment(결제) 서비스 시스템 문제로 인해 수강취소 관리가 블로킹 되지 않도록 처리한다.
+booking(예약소) 후 payment(결제취소) 서비스로 알려주는 행위는 동기식이 아니라 비 동기식으로 처리하여 payment(결제) 서비스 시스템 문제로 인해 예약취소 관리가 블로킹 되지 않도록 처리한다.
 
-- 이를 위하여 수강 신청/취소 시 자체 DB에 직접 기록을 남긴 후에 곧바로 수강 신청/취소 내용을 도메인 이벤트를 카프카로 송출한다(Publish)
+- 이를 위하여 예약 신청/취소 시 자체 DB에 직접 기록을 남긴 후에 곧바로 예약 신청/취소 내용을 도메인 이벤트를 카프카로 송출한다(Publish)
 
 ```
 package classnew;
@@ -822,16 +822,14 @@ public class Class {
 
 
 
-- 수강 취소 (성공) 
-![class_canceled](https://user-images.githubusercontent.com/88864740/133549648-2b0097c9-2149-4550-b762-76aeb59e9e26.png)
+- 티켓 예약 취소 (성공) 
+![비동기_예약취소](https://user-images.githubusercontent.com/20183369/135273656-e2eb72ff-ba95-417f-9128-32be2d30ba23.png)
 
 - 결제 취소(성공)
-![payment_canceled](https://user-images.githubusercontent.com/88864740/133549698-2af75a62-32db-41fd-b9b1-4f182e493659.png)
+![비동기_결제취소](https://user-images.githubusercontent.com/20183369/135273699-56b69922-4abc-40dd-9bb6-fa7398bd048e.png)
 
-
-- PAYMENT(결제) 서비스가 내려가있어도 비동기식으로 CLASS(수강 취소) 성공 되는 부분 확인
-![비동기 payment](https://user-images.githubusercontent.com/88864740/133549843-1cd5ec1e-b0f0-4612-8a5f-5faaede3a44f.png)
-
+- PAYMENT(결제) 서비스가 내려가있어도 비동기식으로 BOOKING(예약 취소) 성공 되는 부분 확인
+![비동기_장애](https://user-images.githubusercontent.com/20183369/135273863-8c9d58a6-b3eb-46c0-b813-282deae3a64f.png)
 
 
 ## Gateway 
