@@ -797,6 +797,7 @@ public class PolicyHandler{
 ![비동기_결제취소](https://user-images.githubusercontent.com/20183369/135273699-56b69922-4abc-40dd-9bb6-fa7398bd048e.png)
 
 - PAYMENT(결제) 서비스가 내려가있어도 비동기식으로 BOOKING(예약 취소) 성공 되는 부분 확인
+- 
 ![비동기_장애](https://user-images.githubusercontent.com/20183369/135273863-8c9d58a6-b3eb-46c0-b813-282deae3a64f.png)
 
 
