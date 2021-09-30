@@ -350,99 +350,44 @@ http GET http://localhost:8084/mypages
 
 ## 폴리글랏 퍼시스턴스
 
-Delivery(배송) 서비스는 mysql 을 사용하여 구현하였다. 
+Mypage(마이페이지) 서비스는 Maria DB 을 사용하여 구현하였다. 
 Spring Cloud JPA를 사용하여 개발하였기 때문에 소스의 변경 부분은 전혀 없으며, 단지 데이터베이스 제품의 설정 (pom.xml, application.yml) 만으로 mysql 에 부착시켰다
 
 ```
 # pom.yml (Delivery)
 
+		<!-- Maria DB -->
 		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>8.0.25</version>
+			<groupId>org.mariadb.jdbc</groupId>
+			<artifactId>mariadb-java-client</artifactId>
 		</dependency>
-		<dependency>
+
 
 ```
 
 ```
-# application.yml (Delivery)
+# application.yml (Mypage)
 
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://mysql-1631696398.default.svc.cluster.local:3306/class?useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC
-    username: root
-    password: RmDqZpf2rq
+spring:
+  profiles: default
   jpa:
-    database: mysql
-    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    show_sql: true
     generate-ddl: true
-    show-sql: true 
+    hibernate:
+      ddl-auto: create-drop
+  datasource:
+    url: jdbc:mariadb://localhost:3306/BookingMypage
+    driver-class-name: org.mariadb.jdbc.Driver
+    username: root
+    password: xxxx
 
 ```
 
-- mysql 서비스 확인 (kubectl get all)
 
-```
-root@labs-2125792906:/home/project# kubectl get all
-NAME                                    READY   STATUS    RESTARTS   AGE
-pod/mysql-1631696398-59dbb78754-j4dt5   1/1     Running   0          85m
-pod/siege-d484db9c-7x7pj                1/1     Running   0          8m16s
-pod/ubuntu                              1/1     Running   0          8m21s
+- maria DB에 저장된 데이터 확인
 
-NAME                       TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
-service/kubernetes         ClusterIP   10.100.0.1     <none>        443/TCP    91m
-service/mysql-1631696398   ClusterIP   10.100.200.1   <none>        3306/TCP   85m
+![image](https://user-images.githubusercontent.com/20183369/135366273-2e3d8b7e-c7a7-4059-b101-a226bcf13d46.png)
 
-NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/mysql-1631696398   1/1     1            1           85m
-deployment.apps/siege              1/1     1            1           8m17s
-
-NAME                                          DESIRED   CURRENT   READY   AGE
-replicaset.apps/mysql-1631696398-59dbb78754   1         1         1       85m
-replicaset.apps/siege-d484db9c                1         1         1       8m17s
-```
-- mysql client 에서 테스트한 데이터 확인
-```
-root@ubuntu:/# mysql -h mysql-1631696398 -p
-Enter password: 
-Welcome to the MySQL monitor.  Commands end with ; or \g.
-Your MySQL connection id is 948
-Server version: 5.7.30 MySQL Community Server (GPL)
-
-Copyright (c) 2000, 2021, Oracle and/or its affiliates.
-
-Oracle is a registered trademark of Oracle Corporation and/or its
-affiliates. Other names may be trademarks of their respective
-owners.
-
-Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
-
-mysql> use class
-Reading table information for completion of table and column names
-You can turn off this feature to get a quicker startup with -A
-
-Database changed
-
-mysql> show tables;
-+--------------------+
-| Tables_in_class    |
-+--------------------+
-| delivery_table     |
-| hibernate_sequence |
-+--------------------+
-2 rows in set (0.00 sec)
-
-mysql> select * from delivery_table
-    -> ;
-+----+--------+----------+-----------------+-------+------------------+
-| id | addr   | apply_id | delivery_status | name  | telelephone_info |
-+----+--------+----------+-----------------+-------+------------------+
-|  1 | JOONGU | 1        | DeliveryStart   | name2 | 012-2345         |
-+----+--------+----------+-----------------+-------+------------------+
-1 row in set (0.00 sec)
-
-```
 
 ## CQRS
 
